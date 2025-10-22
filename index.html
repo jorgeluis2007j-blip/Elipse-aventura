@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elipse Aventura - Juego Educativo</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <style>
+        :root {
+            --primary: #3F51B5;
+            --primary-dark: #303F9F;
+            --primary-light: #C5CAE9;
+            --secondary: #00BCD4;
+            --accent: #FFC107;
+            --text-primary: #212121;
+            --text-secondary: #757575;
+            --background: #FAFAFA;
+            --surface: #FFFFFF;
+            --error: #F44336;
+            --success: #4CAF50;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+        }
+
+        body {
+            background-color: var(--background);
+            color: var(--text-primary);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        .app-bar {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-bar h1 {
+            font-size: 1.5rem;
+            font-weight: 500;
+            margin-left: 8px;
+        }
+
+        .app-bar .material-icons {
+            font-size: 24px;
+        }
+
+        .content {
+            flex: 1;
+            padding: 16px;
+            overflow-y: auto;
+            padding-bottom: 80px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .game-card {
+            background-color: var(--surface);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 16px;
+            overflow: hidden;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .game-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .game-card-header {
+            padding: 16px;
+            background-color: var(--primary-light);
+            display: flex;
+            align-items: center;
+        }
+
+        .game-card-header .material-icons {
+            margin-right: 12px;
+            color: var(--primary);
+        }
+
+        .game-card-body {
+            padding: 16px;
+        }
+
+        .game-card-title {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .game-card-description {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .game-card-actions {
+            display: flex;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .btn .material-icons {
+            font-size: 18px;
+            margin-right: 4px;
+        }
+
+        .btn-secondary {
+            background-color: var(--secondary);
+        }
+
+        .btn-secondary:hover {
+            background-color: #00ACC1;
+        }
+
+        .btn-accent {
+            background-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .btn-accent:hover {
+            background-color: #FFB300;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: var(--surface);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0;
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.1);
+            z-index: 100;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 12px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: color 0.2s;
+            flex: 1;
+            max-width: 20%;
+        }
+
+        .nav-item.active {
+            color: var(--primary);
+        }
+
+        .nav-item .material-icons {
+            font-size: 24px;
+            margin-bottom: 4px;
+        }
+
+        .nav-label {
+            font-size: 0.7rem;
+            font-weight: 500;
+        }
+
+        .ellipse-canvas {
+            width: 100%;
+            height: 200px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            position: relative;
+        }
+
+        .ellipse {
+            position: absolute;
+            border: 2px solid var(--primary);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .foci {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: var(--accent);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .game-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .slider-container {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        .slider-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            font-size: 0.9rem;
+        }
+
+        .slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            background: #e0e0e0;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--primary);
+            cursor: pointer;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .quiz-option {
+            padding: 12px 16px;
+            background-color: var(--surface);
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .quiz-option:hover {
+            background-color: #f5f5f5;
+        }
+
+        .quiz-option.correct {
+            background-color: #E8F5E9;
+            border-color: var(--success);
+        }
+
+        .quiz-option.incorrect {
+            background-color: #FFEBEE;
+            border-color: var(--error);
+        }
+
+        .feedback {
+            padding: 12px 16px;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            display: none;
+        }
+
+        .feedback.success {
+            background-color: #E8F5E9;
+            color: var(--success);
+            display: block;
+        }
+
+        .feedback.error {
+            background-color: #FFEBEE;
+            color: var(--error);
+            display: block;
+        }
+
+        .progress-bar {
+            height: 4px;
+            background-color: #e0e0e0;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+
+        .progress {
+            height: 100%;
+            background-color: var(--primary);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .game-stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .stat {
+            text-align: center;
+            flex: 1;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .equation {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.2rem;
+            text-align: center;
+            margin: 16px 0;
+            padding: 12px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+            cursor: help;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.8rem;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        @media (min-width: 768px) {
+            .content {
+                max-width: 800px;
+                margin: 0 auto;
+            }
+            
+            .game-controls {
+                flex-wrap: nowrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-bar">
+        <span class="material-icons">science</span>
+        <h1>Elipse Aventura</h1>
+    </div>
+
+    <div class="content">
+        <!-- Pestaña 1: Conceptos Básicos -->
+        <div id="tab1" class="tab-content active">
+            <h2>Conceptos Básicos</h2>
+            <p>Aprende los fundamentos de las elipses matemáticas.</p>
+            
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">schedule</span>
+                    <h3 class="game-card-title">Línea del Tiempo Matemático</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Descubre la evolución histórica del concepto de elipse.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startTimelineGame()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">account_tree</span>
+                    <h3 class="game-card-title">Anatomía de la Elipse</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Identifica las partes principales de una elipse.</p>
+                    <div class="ellipse-canvas" id="anatomyCanvas">
+                        <!-- Elipse y sus partes se dibujarán aquí -->
+                    </div>
+                    <div class="game-controls">
+                        <button class="btn" onclick="showEllipseParts()">
+                            <span class="material-icons">visibility</span> Mostrar Partes
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">functions</span>
+                    <h3 class="game-card-title">Constructor de Ecuaciones</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Aprende a construir la ecuación de una elipse paso a paso.</p>
+                    <div class="equation" id="ellipseEquation">x²/a² + y²/b² = 1</div>
+                    <div class="game-controls">
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Eje Mayor (a)</span>
+                                <span id="aValue">5</span>
+                            </div>
+                            <input type="range" min="2" max="10" value="5" class="slider" id="aSlider" oninput="updateEllipseEquation()">
+                        </div>
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Eje Menor (b)</span>
+                                <span id="bValue">3</span>
+                            </div>
+                            <input type="range" min="1" max="9" value="3" class="slider" id="bSlider" oninput="updateEllipseEquation()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">compare</span>
+                    <h3 class="game-card-title">Elipse vs Círculo</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Comprende las diferencias entre una elipse y un círculo.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startComparisonGame()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">eco</span>
+                    <h3 class="game-card-title">Elipses en la Naturaleza</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Descubre ejemplos de elipses en el mundo natural.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="showNaturalEllipses()">
+                            <span class="material-icons">search</span> Explorar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 2: Tipos de Elipses -->
+        <div id="tab2" class="tab-content">
+            <h2>Tipos de Elipses</h2>
+            <p>Explora los diferentes tipos y características de las elipses.</p>
+            
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">crop_rotate</span>
+                    <h3 class="game-card-title">Horizontal vs Vertical</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Identifica y diferencia elipses horizontales y verticales.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startOrientationGame()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">tune</span>
+                    <h3 class="game-card-title">Control de Excentricidad</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Ajusta la excentricidad y observa cómo cambia la forma.</p>
+                    <div class="ellipse-canvas" id="eccentricityCanvas">
+                        <!-- Elipse con excentricidad variable se dibujará aquí -->
+                    </div>
+                    <div class="game-controls">
+                        <div class="slider-container">
+                            <div class="slider-label">
+                                <span>Excentricidad</span>
+                                <span id="eccValue">0.5</span>
+                            </div>
+                            <input type="range" min="0" max="0.9" step="0.1" value="0.5" class="slider" id="eccSlider" oninput="updateEccentricity()">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">360</span>
+                    <h3 class="game-card-title">Rotación de Elipses</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Gira una elipse y observa cómo cambia su ecuación.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startRotationGame()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">family_restroom</span>
+                    <h3 class="game-card-title">Familias de Elipses</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Explora grupos de elipses relacionadas.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="showEllipseFamilies()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">museum</span>
+                    <h3 class="game-card-title">Museo de Elipses</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Galería interactiva con diferentes tipos de elipses.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="openEllipseMuseum()">
+                            <span class="material-icons">visibility</span> Explorar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 3: Propiedades Matemáticas -->
+        <div id="tab3" class="tab-content">
+            <h2>Propiedades Matemáticas</h2>
+            <p>Domina las propiedades y fórmulas de las elipses.</p>
+            
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">center_focus_strong</span>
+                    <h3 class="game-card-title">Calculadora de Focos</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Calcula la posición de los focos de una elipse.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startFociCalculator()">
+                            <span class="material-icons">calculate</span> Calcular
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">straighten</span>
+                    <h3 class="game-card-title">Medidor de Ejes</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Mide los ejes mayor y menor de diferentes elipses.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startAxisMeasurement()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">show_chart</span>
+                    <h3 class="game-card-title">Simulador de Excentricidad</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Observa cómo la excentricidad afecta la forma de la elipse.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startEccentricitySimulator()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">square_foot</span>
+                    <h3 class="game-card-title">Calculadora de Área</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Calcula el área de diferentes elipses.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startAreaCalculator()">
+                            <span class="material-icons">calculate</span> Calcular
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">functions</span>
+                    <h3 class="game-card-title">Transformador de Ecuaciones</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Convierte ecuaciones de forma general a forma canónica.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startEquationTransformer()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 4: Aplicaciones Prácticas -->
+        <div id="tab4" class="tab-content">
+            <h2>Aplicaciones Prácticas</h2>
+            <p>Descubre cómo se aplican las elipses en el mundo real.</p>
+            
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">language</span>
+                    <h3 class="game-card-title">Simulador Orbital</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Observa cómo los planetas se mueven en órbitas elípticas.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startOrbitalSimulator()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">architecture</span>
+                    <h3 class="game-card-title">Arquitecto Elíptico</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Diseña estructuras arquitectónicas usando elipses.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startArchitectGame()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">hearing</span>
+                    <h3 class="game-card-title">Estudio Acústico</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Explora cómo las elipses afectan la propagación del sonido.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startAcousticStudy()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">visibility</span>
+                    <h3 class="game-card-title">Laboratorio Óptico</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Experimenta con lentes y espejos elípticos.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startOpticsLab()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">design_services</span>
+                    <h3 class="game-card-title">Diseñador Industrial</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Crea productos con formas elípticas.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startDesignerGame()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestaña 5: Desafíos y Práctica -->
+        <div id="tab5" class="tab-content">
+            <h2>Desafíos y Práctica</h2>
+            <p>Pon a prueba tus conocimientos con estos desafíos.</p>
+            
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">search</span>
+                    <h3 class="game-card-title">Cazador de Elipses</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Identifica elipses en imágenes del mundo real.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startEllipseHunter()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">edit</span>
+                    <h3 class="game-card-title">Completador de Ecuaciones</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Completa las ecuaciones de elipses faltantes.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startEquationCompleter()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">gps_fixed</span>
+                    <h3 class="game-card-title">Localizador de Focos</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Encuentra los focos de diferentes elipses.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startFociLocator()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">draw</span>
+                    <h3 class="game-card-title">Taller de Dibujo</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Dibuja elipses con diferentes herramientas.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startDrawingWorkshop()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="game-card">
+                <div class="game-card-header">
+                    <span class="material-icons">psychology</span>
+                    <h3 class="game-card-title">Resolvedor de Problemas</h3>
+                </div>
+                <div class="game-card-body">
+                    <p class="game-card-description">Resuelve problemas del mundo real usando elipses.</p>
+                    <div class="game-controls">
+                        <button class="btn" onclick="startProblemSolver()">
+                            <span class="material-icons">play_arrow</span> Comenzar
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab(1)">
+            <span class="material-icons">school</span>
+            <span class="nav-label">Conceptos</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(2)">
+            <span class="material-icons">category</span>
+            <span class="nav-label">Tipos</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(3)">
+            <span class="material-icons">functions</span>
+            <span class="nav-label">Propiedades</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(4)">
+            <span class="material-icons">public</span>
+            <span class="nav-label">Aplicaciones</span>
+        </div>
+        <div class="nav-item" onclick="switchTab(5)">
+            <span class="material-icons">sports_esports</span>
+            <span class="nav-label">Desafíos</span>
+        </div>
+    </div>
+
+    <script>
+        // Funciones para cambiar entre pestañas
+        function switchTab(tabNumber) {
+            // Ocultar todas las pestañas
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Mostrar la pestaña seleccionada
+            document.getElementById(`tab${tabNumber}`).classList.add('active');
+            
+            // Actualizar navegación inferior
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            document.querySelectorAll('.nav-item')[tabNumber - 1].classList.add('active');
+        }
+
+        // Funciones para los juegos (simuladas por ahora)
+        function startTimelineGame() {
+            alert('¡Iniciando Línea del Tiempo Matemático!');
+        }
+
+        function showEllipseParts() {
+            const canvas = document.getElementById('anatomyCanvas');
+            canvas.innerHTML = `
+                <div class="ellipse" style="width: 200px; height: 120px; top: 50%; left: 50%;"></div>
+                <div class="foci" style="top: 50%; left: 40%;"></div>
+                <div class="foci" style="top: 50%; left: 60%;"></div>
+            `;
+        }
+
+        function updateEllipseEquation() {
+            const a = document.getElementById('aSlider').value;
+            const b = document.getElementById('bSlider').value;
+            
+            document.getElementById('aValue').textContent = a;
+            document.getElementById('bValue').textContent = b;
+            
+            document.getElementById('ellipseEquation').textContent = 
+                `x²/${a}² + y²/${b}² = 1`;
+        }
+
+        function startComparisonGame() {
+            alert('¡Iniciando comparación Elipse vs Círculo!');
+        }
+
+        function showNaturalEllipses() {
+            alert('¡Explorando elipses en la naturaleza!');
+        }
+
+        function startOrientationGame() {
+            alert('¡Iniciando juego de orientación de elipses!');
+        }
+
+        function updateEccentricity() {
+            const ecc = document.getElementById('eccSlider').value;
+            document.getElementById('eccValue').textContent = ecc;
+            
+            // Actualizar visualización de la elipse según la excentricidad
+            const canvas = document.getElementById('eccentricityCanvas');
+            const a = 100; // Semieje mayor fijo
+            const c = a * ecc; // Distancia focal
+            const b = Math.sqrt(a*a - c*c); // Semieje menor
+            
+            canvas.innerHTML = `
+                <div class="ellipse" style="width: ${2*a}px; height: ${2*b}px; top: 50%; left: 50%;"></div>
+                <div class="foci" style="top: 50%; left: ${50 - c}%;"></div>
+                <div class="foci" style="top: 50%; left: ${50 + c}%;"></div>
+            `;
+        }
+
+        function startRotationGame() {
+            alert('¡Iniciando juego de rotación de elipses!');
+        }
+
+        function showEllipseFamilies() {
+            alert('¡Explorando familias de elipses!');
+        }
+
+        function openEllipseMuseum() {
+            alert('¡Abriendo Museo de Elipses!');
+        }
+
+        function startFociCalculator() {
+            alert('¡Iniciando calculadora de focos!');
+        }
+
+        function startAxisMeasurement() {
+            alert('¡Iniciando medidor de ejes!');
+        }
+
+        function startEccentricitySimulator() {
+            alert('¡Iniciando simulador de excentricidad!');
+        }
+
+        function startAreaCalculator() {
+            alert('¡Iniciando calculadora de área!');
+        }
+
+        function startEquationTransformer() {
+            alert('¡Iniciando transformador de ecuaciones!');
+        }
+
+        function startOrbitalSimulator() {
+            alert('¡Iniciando simulador orbital!');
+        }
+
+        function startArchitectGame() {
+            alert('¡Iniciando juego de arquitectura elíptica!');
+        }
+
+        function startAcousticStudy() {
+            alert('¡Iniciando estudio acústico!');
+        }
+
+        function startOpticsLab() {
+            alert('¡Iniciando laboratorio óptico!');
+        }
+
+        function startDesignerGame() {
+            alert('¡Iniciando juego de diseño industrial!');
+        }
+
+        function startEllipseHunter() {
+            alert('¡Iniciando cazador de elipses!');
+        }
+
+        function startEquationCompleter() {
+            alert('¡Iniciando completador de ecuaciones!');
+        }
+
+        function startFociLocator() {
+            alert('¡Iniciando localizador de focos!');
+        }
+
+        function startDrawingWorkshop() {
+            alert('¡Iniciando taller de dibujo!');
+        }
+
+        function startProblemSolver() {
+            alert('¡Iniciando resolvedor de problemas!');
+        }
+
+        // Inicializar la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            updateEllipseEquation();
+            updateEccentricity();
+        });
+    </script>
+</body>
+</html>
